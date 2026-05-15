@@ -8,7 +8,9 @@ from app.core.deps import get_current_user, require_role
 from app.models.enums import Rol
 from app.models.paciente import Paciente
 from app.models.usuario import Usuario
+from app.repositories import consulta as consulta_repo
 from app.repositories import paciente as repo
+from app.schemas.consulta import ConsultaHistorial
 from app.schemas.paciente import PacienteCreate, PacienteRead, PacienteSearchResult, PacienteUpdate
 
 router = APIRouter(prefix="/pacientes", tags=["Pacientes"])
@@ -74,3 +76,14 @@ async def update_paciente(
 
     paciente.updated_by = current.id
     return await repo.save(db, paciente)
+
+
+@router.get("/{paciente_id}/consultas", response_model=list[ConsultaHistorial])
+async def historial_consultas(
+    paciente_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    if not await repo.get_by_id(db, paciente_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paciente no encontrado")
+    return await consulta_repo.list_historial_paciente(db, paciente_id)
