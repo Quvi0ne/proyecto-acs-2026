@@ -40,3 +40,47 @@ async def admin_token(client: AsyncClient):
 @pytest.fixture
 def auth_headers(admin_token: str):
     return {"Authorization": f"Bearer {admin_token}"}
+
+
+_MEDICO_COLEGIADO = "TEST0001"
+_MEDICO_EMAIL = "medico.test@example.com"
+_MEDICO_PASSWORD = "Medico1234!"
+
+
+@pytest.fixture
+async def medico_id(client: AsyncClient, admin_token: str) -> str:
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    resp = await client.post(
+        "/api/v1/medicos",
+        json={
+            "nombre": "Dr. Test",
+            "especialidad": "General",
+            "num_colegiado": _MEDICO_COLEGIADO,
+            "email": _MEDICO_EMAIL,
+            "password": _MEDICO_PASSWORD,
+        },
+        headers=headers,
+    )
+    if resp.status_code == 201:
+        return resp.json()["id"]
+    list_resp = await client.get("/api/v1/medicos", headers=headers)
+    assert list_resp.status_code == 200
+    for m in list_resp.json():
+        if m["num_colegiado"] == _MEDICO_COLEGIADO:
+            return m["id"]
+    pytest.fail("No se pudo crear ni encontrar el médico de prueba")
+
+
+@pytest.fixture
+async def medico_token(client: AsyncClient, medico_id: str) -> str:
+    resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": _MEDICO_EMAIL, "password": _MEDICO_PASSWORD},
+    )
+    assert resp.status_code == 200
+    return resp.json()["access_token"]
+
+
+@pytest.fixture
+def medico_auth_headers(medico_token: str) -> dict:
+    return {"Authorization": f"Bearer {medico_token}"}

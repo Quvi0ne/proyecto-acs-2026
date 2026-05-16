@@ -1,0 +1,42 @@
+from datetime import datetime
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.cita import Cita
+from app.models.enums import EstadoCita
+
+
+async def get_by_id(db: AsyncSession, cita_id: str) -> Cita | None:
+    result = await db.execute(select(Cita).where(Cita.id == cita_id))
+    return result.scalar_one_or_none()
+
+
+async def existe_conflicto(
+    db: AsyncSession,
+    medico_id: str,
+    fecha_hora: datetime,
+    exclude_id: str | None = None,
+) -> bool:
+    q = select(func.count()).where(
+        Cita.medico_id == medico_id,
+        Cita.fecha_hora == fecha_hora,
+        Cita.estado == EstadoCita.PROGRAMADA,
+    )
+    if exclude_id:
+        q = q.where(Cita.id != exclude_id)
+    result = await db.execute(q)
+    return result.scalar_one() > 0
+
+
+async def create(db: AsyncSession, cita: Cita) -> Cita:
+    db.add(cita)
+    await db.commit()
+    await db.refresh(cita)
+    return cita
+
+
+async def save(db: AsyncSession, cita: Cita) -> Cita:
+    await db.commit()
+    await db.refresh(cita)
+    return cita
