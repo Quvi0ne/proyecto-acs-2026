@@ -21,6 +21,12 @@ class ConsultaRead(BaseModel):
     fecha_consulta: datetime
 
 
+class ConsultaUpdate(BaseModel):
+    diagnostico: str | None = None
+    notas_clinicas: str | None = None
+    plan_tratamiento: str | None = None
+
+
 class ConsultaHistorial(BaseModel):
     id: str
     fecha_consulta: datetime

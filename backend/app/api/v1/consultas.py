@@ -12,7 +12,7 @@ from app.models.usuario import Usuario
 from app.repositories import cita as cita_repo
 from app.repositories import consulta as repo
 from app.repositories import signos_vitales as sv_repo
-from app.schemas.consulta import ConsultaCreate, ConsultaRead
+from app.schemas.consulta import ConsultaCreate, ConsultaRead, ConsultaUpdate
 from app.schemas.signos_vitales import SignosVitalesCreate, SignosVitalesRead
 
 router = APIRouter(prefix="/consultas", tags=["Consultas"])
@@ -57,6 +57,25 @@ async def get_consulta(
     if not consulta:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Consulta no encontrada")
     return consulta
+
+
+@router.patch("/{consulta_id}", response_model=ConsultaRead)
+async def update_consulta(
+    consulta_id: str,
+    body: ConsultaUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(medico_only),
+):
+    consulta = await repo.get_by_id(db, consulta_id)
+    if not consulta:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Consulta no encontrada")
+    if body.diagnostico is not None:
+        consulta.diagnostico = body.diagnostico
+    if body.notas_clinicas is not None:
+        consulta.notas_clinicas = body.notas_clinicas
+    if body.plan_tratamiento is not None:
+        consulta.plan_tratamiento = body.plan_tratamiento
+    return await repo.save(db, consulta)
 
 
 @router.post(
