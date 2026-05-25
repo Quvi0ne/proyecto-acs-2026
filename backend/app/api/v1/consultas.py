@@ -9,10 +9,14 @@ from app.models.consulta import Consulta
 from app.models.enums import EstadoCita, Rol
 from app.models.signos_vitales import SignosVitales
 from app.models.usuario import Usuario
+from app.models.medicamento_receta import MedicamentoReceta
+from app.models.receta import Receta
 from app.repositories import cita as cita_repo
 from app.repositories import consulta as repo
+from app.repositories import receta as receta_repo
 from app.repositories import signos_vitales as sv_repo
 from app.schemas.consulta import ConsultaCreate, ConsultaRead, ConsultaUpdate
+from app.schemas.receta import RecetaCreate, RecetaRead
 from app.schemas.signos_vitales import SignosVitalesCreate, SignosVitalesRead
 
 router = APIRouter(prefix="/consultas", tags=["Consultas"])
@@ -112,3 +116,27 @@ async def create_signos_vitales(
         imc=imc,
     )
     return await sv_repo.create(db, signos)
+
+
+@router.post(
+    "/{consulta_id}/recetas",
+    response_model=RecetaRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_receta(
+    consulta_id: str,
+    body: RecetaCreate,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(medico_only),
+):
+    consulta = await repo.get_by_id(db, consulta_id)
+    if not consulta:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Consulta no encontrada")
+    if not body.medicamentos:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Debe incluir al menos un medicamento",
+        )
+    receta = Receta(consulta_id=consulta_id)
+    medicamentos = [MedicamentoReceta(**m.model_dump()) for m in body.medicamentos]
+    return await receta_repo.create(db, receta, medicamentos)
