@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.medico import Medico
 
@@ -16,7 +17,10 @@ async def get_by_colegiado(db: AsyncSession, num_colegiado: str) -> Medico | Non
 
 async def list_active(db: AsyncSession) -> list[Medico]:
     result = await db.execute(
-        select(Medico).where(Medico.activo == True).order_by(Medico.id)  # noqa: E712
+        select(Medico)
+        .where(Medico.activo == True)  # noqa: E712
+        .options(selectinload(Medico.usuario))
+        .order_by(Medico.id)
     )
     return list(result.scalars().all())
 

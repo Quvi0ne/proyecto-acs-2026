@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}SECE — Editar cita{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <h4 class="mb-3">Editar cita</h4>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <p class="mb-1"><strong>Fecha:</strong> {{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p class="mb-1"><strong>Estado:</strong> {{ cita.estado.value }}</p>
+        <p class="mb-0"><strong>Motivo actual:</strong> {{ cita.motivo or '—' }}</p>
+      </div>
+    </div>
+
+    <h6 class="mb-3">Reprogramar</h6>
+    <form method="post" action="/citas/{{ cita.id }}/editar" class="mb-4">
+      <input type="hidden" name="accion" value="reprogramar">
+      <div class="mb-3">
+        <label class="form-label">Nueva fecha y hora *</label>
+        <input type="datetime-local" name="fecha_hora" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Reprogramar</button>
+    </form>
+
+    <hr>
+    <h6 class="mb-3">Cancelar cita</h6>
+    <form method="post" action="/citas/{{ cita.id }}/editar">
+      <input type="hidden" name="accion" value="cancelar">
+      <div class="mb-3">
+        <label class="form-label">Motivo de cancelación</label>
+        <input type="text" name="motivo" class="form-control">
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger btn-sm">Cancelar cita</button>
+        <a href="/citas" class="btn btn-outline-secondary btn-sm">Volver</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

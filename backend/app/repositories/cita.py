@@ -1,10 +1,25 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.cita import Cita
 from app.models.enums import EstadoCita
+from app.models.medico import Medico
+
+
+async def list_by_fecha(db: AsyncSession, fecha: date) -> list[Cita]:
+    result = await db.execute(
+        select(Cita)
+        .where(func.date(Cita.fecha_hora) == fecha)
+        .options(
+            selectinload(Cita.paciente),
+            selectinload(Cita.medico).selectinload(Medico.usuario),
+        )
+        .order_by(Cita.fecha_hora)
+    )
+    return list(result.scalars().all())
 
 
 async def get_by_id(db: AsyncSession, cita_id: str) -> Cita | None:
