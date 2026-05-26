@@ -1,5 +1,4 @@
 from fastapi import Depends, FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,14 +12,6 @@ app = FastAPI(
     title="SECE API",
     description="Sistema de Expediente Clínico Electrónico",
     version="0.1.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 
