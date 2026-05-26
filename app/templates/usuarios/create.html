@@ -18,14 +18,10 @@
 </div>
 {% endif %}
 
-<div class="content-card" style="max-width:520px">
+<div class="content-card" style="max-width:560px">
   <div class="content-card-header"><span class="card-title">Datos del usuario</span></div>
   <div class="p-4">
-    <p style="font-size:.82rem;color:#6b7280" class="mb-4">
-      Para registrar un <strong>médico</strong> usa
-      <a href="/medicos/crear">Médicos → Nuevo médico</a> — requiere colegiado y especialidad.
-    </p>
-    <form method="post" action="/usuarios/crear">
+    <form method="post" action="/usuarios/crear" id="form-usuario">
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Nombre completo *</label>
@@ -41,11 +37,29 @@
         </div>
         <div class="col-12">
           <label class="form-label">Rol *</label>
-          <select name="rol" class="form-select" required>
+          <select name="rol" class="form-select" required id="sel-rol" onchange="toggleMedico()">
             <option value="RECEPCIONISTA">Recepcionista</option>
             <option value="ADMIN">Administrador</option>
+            <option value="MEDICO">Médico</option>
           </select>
         </div>
+
+        <div id="campos-medico" style="display:none" class="col-12">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="form-section-title mt-1">Datos del médico</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Especialidad *</label>
+              <input type="text" name="especialidad" class="form-control" id="inp-especialidad">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">No. de colegiado *</label>
+              <input type="text" name="num_colegiado" class="form-control" id="inp-colegiado">
+            </div>
+          </div>
+        </div>
+
         <div class="col-12 d-flex gap-2 pt-1">
           <button type="submit" class="btn btn-sece">Crear usuario</button>
           <a href="/usuarios" class="btn btn-outline-secondary">Cancelar</a>
@@ -54,4 +68,14 @@
     </form>
   </div>
 </div>
+
+<script>
+function toggleMedico() {
+  const esMedico = document.getElementById('sel-rol').value === 'MEDICO';
+  const campos = document.getElementById('campos-medico');
+  campos.style.display = esMedico ? 'block' : 'none';
+  document.getElementById('inp-especialidad').required = esMedico;
+  document.getElementById('inp-colegiado').required = esMedico;
+}
+</script>
 {% endblock %}

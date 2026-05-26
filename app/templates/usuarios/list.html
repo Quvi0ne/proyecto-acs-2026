@@ -30,12 +30,12 @@
       </thead>
       <tbody>
         {% for u in usuarios %}
+        {% set es_ultimo_admin = (u.rol.value == 'ADMIN' and u.activo and active_admins <= 1) %}
+        {% set es_yo = (u.id == user.id) %}
         <tr>
           <td>{{ u.nombre }}</td>
           <td>{{ u.email }}</td>
-          <td>
-            <span class="badge-prog" style="text-transform:none">{{ u.rol.value }}</span>
-          </td>
+          <td><span class="badge-prog" style="text-transform:none">{{ u.rol.value }}</span></td>
           <td>
             {% if u.activo %}
             <span class="badge-comp">Activo</span>
@@ -44,25 +44,31 @@
             {% endif %}
           </td>
           <td>
+            {% if not es_yo %}
             <form method="post" action="/usuarios/{{ u.id }}/rol" class="d-flex gap-1">
-              <select name="rol" class="form-select form-select-sm" style="width:160px">
-                <option value="ADMIN" {% if u.rol.value == 'ADMIN' %}selected{% endif %}>ADMIN</option>
-                <option value="MEDICO" {% if u.rol.value == 'MEDICO' %}selected{% endif %}>MEDICO</option>
-                <option value="RECEPCIONISTA" {% if u.rol.value == 'RECEPCIONISTA' %}selected{% endif %}>RECEPCIONISTA</option>
+              <select name="rol" class="form-select form-select-sm" style="width:155px">
+                <option value="ADMIN" {% if u.rol.value == 'ADMIN' %}selected{% endif %}>Administrador</option>
+                <option value="MEDICO" {% if u.rol.value == 'MEDICO' %}selected{% endif %}>Médico</option>
+                <option value="RECEPCIONISTA" {% if u.rol.value == 'RECEPCIONISTA' %}selected{% endif %}>Recepcionista</option>
               </select>
               <button type="submit" class="btn btn-outline-secondary btn-sm">Cambiar</button>
             </form>
+            {% else %}
+            <span class="text-muted" style="font-size:.78rem">—</span>
+            {% endif %}
           </td>
           <td>
-            {% if u.id != user.id %}
+            {% if es_yo %}
+            <span class="text-muted" style="font-size:.78rem">Tu cuenta</span>
+            {% elif es_ultimo_admin %}
+            <span class="text-muted" style="font-size:.78rem">Único admin</span>
+            {% else %}
             <form method="post" action="/usuarios/{{ u.id }}/activo"
                   onsubmit="return confirm('¿{{ 'Desactivar' if u.activo else 'Activar' }} a {{ u.nombre }}?')">
               <button type="submit" class="btn btn-sm {% if u.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
                 {{ 'Desactivar' if u.activo else 'Activar' }}
               </button>
             </form>
-            {% else %}
-            <span class="text-muted" style="font-size:.78rem">Tu cuenta</span>
             {% endif %}
           </td>
         </tr>
@@ -70,9 +76,5 @@
       </tbody>
     </table>
   </div>
-</div>
-
-<div class="mt-3" style="font-size:.8rem;color:#6b7280">
-  Para registrar un médico usa <a href="/medicos/crear">Médicos → Nuevo médico</a>, ya que requiere datos adicionales de colegiado y especialidad.
 </div>
 {% endblock %}

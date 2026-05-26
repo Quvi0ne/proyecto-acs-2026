@@ -1,20 +1,19 @@
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import hash_password
 from app.models.enums import Rol
+from app.models.medico import Medico
 from app.models.usuario import Usuario
+from app.repositories import medico as medico_repo
 from app.repositories import usuario as repo
 from app.web.deps import get_web_user
 from app.web.templates import templates
 
 router = APIRouter(tags=["Web"])
-
-
-def _admin_only(user) -> bool:
-    return user.rol.value == "ADMIN"
 
 
 @router.get("/usuarios")
@@ -23,17 +22,19 @@ async def list_usuarios(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_web_user),
 ):
-    if not _admin_only(user):
+    if user.rol.value != "ADMIN":
         return RedirectResponse("/?error=Acceso restringido a administradores", status_code=302)
     usuarios = await repo.list_all(db)
+    active_admins = await repo.count_active_admins(db)
     return templates.TemplateResponse(
-        request, "usuarios/list.html", {"user": user, "usuarios": usuarios}
+        request, "usuarios/list.html",
+        {"user": user, "usuarios": usuarios, "active_admins": active_admins},
     )
 
 
 @router.get("/usuarios/crear")
 async def crear_usuario_get(request: Request, user=Depends(get_web_user)):
-    if not _admin_only(user):
+    if user.rol.value != "ADMIN":
         return RedirectResponse("/?error=Acceso restringido a administradores", status_code=302)
     return templates.TemplateResponse(
         request, "usuarios/create.html", {"user": user, "error": None}
@@ -47,17 +48,30 @@ async def crear_usuario_post(
     email: str = Form(...),
     password: str = Form(...),
     rol: str = Form(...),
+    especialidad: str = Form(""),
+    num_colegiado: str = Form(""),
     db: AsyncSession = Depends(get_db),
     user=Depends(get_web_user),
 ):
-    if not _admin_only(user):
+    if user.rol.value != "ADMIN":
         return RedirectResponse("/?error=Acceso restringido a administradores", status_code=302)
-    if await repo.get_by_email(db, email):
+
+    def error(msg):
         return templates.TemplateResponse(
             request, "usuarios/create.html",
-            {"user": user, "error": "El correo electrónico ya está registrado"},
+            {"user": user, "error": msg},
             status_code=409,
         )
+
+    if rol == "MEDICO":
+        if not especialidad.strip() or not num_colegiado.strip():
+            return error("Especialidad y número de colegiado son obligatorios para médicos")
+        if await medico_repo.get_by_colegiado(db, num_colegiado.strip()):
+            return error("El número de colegiado ya está registrado")
+
+    if await repo.get_by_email(db, email):
+        return error("El correo electrónico ya está registrado")
+
     nuevo = Usuario(
         nombre=nombre,
         email=email,
@@ -65,6 +79,18 @@ async def crear_usuario_post(
         rol=Rol(rol),
     )
     await repo.create(db, nuevo)
+
+    if rol == "MEDICO":
+        medico = Medico(
+            usuario_id=nuevo.id,
+            especialidad=especialidad.strip(),
+            num_colegiado=num_colegiado.strip(),
+        )
+        try:
+            await medico_repo.create(db, medico)
+        except IntegrityError:
+            return error("Error al registrar el médico")
+
     return RedirectResponse(f"/usuarios?ok=Usuario {nombre} creado exitosamente", status_code=303)
 
 
@@ -76,7 +102,7 @@ async def cambiar_rol(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_web_user),
 ):
-    if not _admin_only(user):
+    if user.rol.value != "ADMIN":
         return RedirectResponse("/usuarios?error=Acceso restringido a administradores", status_code=302)
     target = await repo.get_by_id(db, usuario_id)
     if not target:
@@ -93,13 +119,20 @@ async def toggle_activo(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_web_user),
 ):
-    if not _admin_only(user):
+    if user.rol.value != "ADMIN":
         return RedirectResponse("/usuarios?error=Acceso restringido a administradores", status_code=302)
     target = await repo.get_by_id(db, usuario_id)
     if not target:
         return RedirectResponse("/usuarios?error=Usuario no encontrado", status_code=302)
     if target.id == user.id:
         return RedirectResponse("/usuarios?error=No puedes desactivar tu propia cuenta", status_code=302)
+    if target.activo and target.rol == Rol.ADMIN:
+        active_admins = await repo.count_active_admins(db)
+        if active_admins <= 1:
+            return RedirectResponse(
+                "/usuarios?error=No puedes desactivar al único administrador activo",
+                status_code=302,
+            )
     target.activo = not target.activo
     accion = "activado" if target.activo else "desactivado"
     await repo.save(db, target)

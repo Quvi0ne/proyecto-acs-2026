@@ -1,6 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.enums import Rol
 from app.models.usuario import Usuario
 
 
@@ -12,6 +13,13 @@ async def get_by_id(db: AsyncSession, user_id: str) -> Usuario | None:
 async def get_by_email(db: AsyncSession, email: str) -> Usuario | None:
     result = await db.execute(select(Usuario).where(Usuario.email == email))
     return result.scalar_one_or_none()
+
+
+async def count_active_admins(db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count()).where(Usuario.rol == Rol.ADMIN, Usuario.activo == True)  # noqa: E712
+    )
+    return result.scalar_one()
 
 
 async def list_all(db: AsyncSession) -> list[Usuario]:
