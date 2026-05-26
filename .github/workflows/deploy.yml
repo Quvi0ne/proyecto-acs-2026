@@ -1,0 +1,44 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      EB_APP: ${{ secrets.EB_APP }}
+      EB_ENV: ${{ secrets.EB_ENV }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Export requirements.txt
+        run: uv export --no-hashes -o requirements.txt
+
+      - name: Build deployment package
+        run: zip -r app.zip . -x "*.git*" -x ".venv/*" -x "__pycache__/*" -x "*.pyc"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws s3 cp app.zip s3://$S3_BUCKET/app-$GITHUB_SHA.zip
+          aws elasticbeanstalk create-application-version \
+            --application-name $EB_APP \
+            --version-label $GITHUB_SHA \
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=app-$GITHUB_SHA.zip
+          aws elasticbeanstalk update-environment \
+            --environment-name $EB_ENV \
+            --version-label $GITHUB_SHA
