@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}SECE — Emitir receta{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <h4 class="mb-3">Emitir receta</h4>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/consultas/{{ consulta.id }}/receta" id="form-receta">
+      <div id="medicamentos">
+        <div class="row g-2 mb-2 medicamento-row">
+          <div class="col-md-3"><input type="text" name="nombre[]" class="form-control form-control-sm" placeholder="Medicamento *" required></div>
+          <div class="col-md-2"><input type="text" name="dosis[]" class="form-control form-control-sm" placeholder="Dosis"></div>
+          <div class="col-md-2"><input type="text" name="via[]" class="form-control form-control-sm" placeholder="Vía"></div>
+          <div class="col-md-3"><input type="text" name="frecuencia[]" class="form-control form-control-sm" placeholder="Frecuencia"></div>
+          <div class="col-md-2"><input type="text" name="duracion[]" class="form-control form-control-sm" placeholder="Duración"></div>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-outline-secondary btn-sm mb-3" onclick="agregarFila()">+ Agregar medicamento</button>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Emitir receta</button>
+        <a href="/consultas/{{ consulta.id }}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function agregarFila() {
+  const contenedor = document.getElementById('medicamentos');
+  const fila = contenedor.querySelector('.medicamento-row').cloneNode(true);
+  fila.querySelectorAll('input').forEach(i => i.value = '');
+  fila.querySelector('input[name="nombre[]"]').removeAttribute('required');
+  contenedor.appendChild(fila);
+}
+</script>
+{% endblock %}

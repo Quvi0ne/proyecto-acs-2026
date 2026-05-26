@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}SECE — Signos vitales{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <h4 class="mb-3">Registrar signos vitales</h4>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/consultas/{{ consulta.id }}/signos">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Presión arterial</label>
+          <input type="text" name="presion_arterial" class="form-control" placeholder="120/80">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Temperatura (°C)</label>
+          <input type="number" name="temperatura" class="form-control" step="0.1" placeholder="36.5">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Frec. cardíaca (bpm)</label>
+          <input type="number" name="frecuencia_cardiaca" class="form-control" placeholder="72">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Peso (kg)</label>
+          <input type="number" name="peso" class="form-control" step="0.1" placeholder="70.0">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Talla (m)</label>
+          <input type="number" name="talla" class="form-control" step="0.01" placeholder="1.70">
+        </div>
+        <div class="col-12">
+          <small class="text-muted">El IMC se calculará automáticamente si se ingresan peso y talla.</small>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-success">Guardar signos vitales</button>
+          <a href="/consultas/{{ consulta.id }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

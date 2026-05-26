@@ -44,9 +44,12 @@
           {% endif %}
         </td>
         <td>{{ c.motivo or '—' }}</td>
-        <td>
+        <td class="d-flex gap-1">
           {% if c.estado.value == 'PROGRAMADA' %}
           <a href="/citas/{{ c.id }}/editar" class="btn btn-outline-warning btn-sm">Editar</a>
+          {% if user.rol.value == 'MEDICO' %}
+          <a href="/consultas/crear?cita_id={{ c.id }}" class="btn btn-success btn-sm">Consultar</a>
+          {% endif %}
           {% endif %}
         </td>
       </tr>
