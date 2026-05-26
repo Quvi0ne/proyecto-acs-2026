@@ -1,72 +1,121 @@
 {% extends "base.html" %}
 {% block title %}SECE — Consulta{% endblock %}
+{% block page_title %}Detalle de consulta{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
-  <h4>Detalle de consulta</h4>
-  <a href="/pacientes/{{ consulta.cita.paciente_id }}" class="btn btn-outline-secondary btn-sm">← Expediente</a>
-</div>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/pacientes/{{ consulta.cita.paciente_id }}">Expediente</a></li>
+    <li class="breadcrumb-item active">Consulta</li>
+  </ol>
+</nav>
 
 <div class="row g-3 mb-4">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="text-muted mb-2">Datos de la consulta</h6>
-        <p class="mb-1"><strong>Fecha:</strong> {{ consulta.fecha_consulta.strftime('%d/%m/%Y %H:%M') }}</p>
-        <p class="mb-1"><strong>Médico:</strong> {{ consulta.cita.medico.usuario.nombre }}</p>
-        <p class="mb-1"><strong>Paciente:</strong> {{ consulta.cita.paciente.nombre_completo }}</p>
-        <p class="mb-1"><strong>Diagnóstico:</strong> {{ consulta.diagnostico }}</p>
-        {% if consulta.notas_clinicas %}
-        <p class="mb-1"><strong>Notas clínicas:</strong> {{ consulta.notas_clinicas }}</p>
-        {% endif %}
-        {% if consulta.plan_tratamiento %}
-        <p class="mb-0"><strong>Plan de tratamiento:</strong> {{ consulta.plan_tratamiento }}</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="text-muted mb-2">Signos vitales</h6>
-        {% if consulta.signos_vitales %}
-        {% set sv = consulta.signos_vitales %}
+  <div class="col-md-7">
+    <div class="content-card h-100">
+      <div class="content-card-header"><span class="card-title">Datos de la consulta</span></div>
+      <div class="p-4">
         <table class="table table-sm mb-0">
-          <tr><th>Presión arterial</th><td>{{ sv.presion_arterial or '—' }}</td></tr>
-          <tr><th>Temperatura</th><td>{{ sv.temperatura or '—' }} °C</td></tr>
-          <tr><th>Frec. cardíaca</th><td>{{ sv.frecuencia_cardiaca or '—' }} bpm</td></tr>
-          <tr><th>Peso</th><td>{{ sv.peso or '—' }} kg</td></tr>
-          <tr><th>Talla</th><td>{{ sv.talla or '—' }} m</td></tr>
-          <tr><th>IMC</th><td>{{ sv.imc or '—' }}</td></tr>
+          <tr><th style="width:38%">Fecha</th><td>{{ consulta.fecha_consulta.strftime('%d/%m/%Y %H:%M') }}</td></tr>
+          <tr><th>Médico</th><td>{{ consulta.cita.medico.usuario.nombre }}</td></tr>
+          <tr><th>Paciente</th><td>{{ consulta.cita.paciente.nombre_completo }}</td></tr>
+          <tr><th>Diagnóstico</th><td>{{ consulta.diagnostico or '—' }}</td></tr>
+          {% if consulta.notas_clinicas %}
+          <tr><th>Notas clínicas</th><td>{{ consulta.notas_clinicas }}</td></tr>
+          {% endif %}
+          {% if consulta.plan_tratamiento %}
+          <tr><th>Plan de tratamiento</th><td>{{ consulta.plan_tratamiento }}</td></tr>
+          {% endif %}
         </table>
-        {% else %}
-        <p class="text-muted mb-2">Sin signos vitales registrados.</p>
-        {% if user.rol.value == 'MEDICO' %}
-        <a href="/consultas/{{ consulta.id }}/signos" class="btn btn-outline-primary btn-sm">Registrar signos</a>
-        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="content-card h-100">
+      <div class="content-card-header">
+        <span class="card-title">Signos vitales</span>
+        {% if not consulta.signos_vitales and user.rol.value == 'MEDICO' %}
+        <a href="/consultas/{{ consulta.id }}/signos" class="btn btn-sece btn-sm">Registrar</a>
         {% endif %}
       </div>
+      {% if consulta.signos_vitales %}
+      {% set sv = consulta.signos_vitales %}
+      <div class="p-3">
+        <div class="row g-2">
+          {% if sv.presion_arterial %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#f3f4f6">
+              <div style="font-size:.68rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px">Presión</div>
+              <div style="font-weight:600;color:#111827">{{ sv.presion_arterial }}</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if sv.temperatura %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#f3f4f6">
+              <div style="font-size:.68rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px">Temp.</div>
+              <div style="font-weight:600;color:#111827">{{ sv.temperatura }} °C</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if sv.frecuencia_cardiaca %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#f3f4f6">
+              <div style="font-size:.68rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px">F. cardíaca</div>
+              <div style="font-weight:600;color:#111827">{{ sv.frecuencia_cardiaca }} bpm</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if sv.peso %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#f3f4f6">
+              <div style="font-size:.68rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px">Peso</div>
+              <div style="font-weight:600;color:#111827">{{ sv.peso }} kg</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if sv.talla %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#f3f4f6">
+              <div style="font-size:.68rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px">Talla</div>
+              <div style="font-weight:600;color:#111827">{{ sv.talla }} m</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if sv.imc %}
+          <div class="col-6">
+            <div class="p-2 rounded" style="background:#dbeafe">
+              <div style="font-size:.68rem;color:#1e40af;text-transform:uppercase;letter-spacing:.3px">IMC</div>
+              <div style="font-weight:700;color:#1e40af">{{ sv.imc }}</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="p-4 text-muted" style="font-size:.85rem">Sin signos vitales registrados.</div>
+      {% endif %}
     </div>
   </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5>Recetas</h5>
-  {% if user.rol.value == 'MEDICO' %}
-  <a href="/consultas/{{ consulta.id }}/receta" class="btn btn-success btn-sm">+ Nueva receta</a>
-  {% endif %}
-</div>
-
-{% if consulta.recetas %}
-{% for receta in consulta.recetas %}
-<div class="card mb-3">
-  <div class="card-header">
-    Receta emitida el {{ receta.fecha_emision }}
+<div class="content-card">
+  <div class="content-card-header">
+    <span class="card-title">Recetas</span>
+    {% if user.rol.value == 'MEDICO' %}
+    <a href="/consultas/{{ consulta.id }}/receta" class="btn btn-sece btn-sm">+ Nueva receta</a>
+    {% endif %}
   </div>
-  <div class="card-body p-0">
+  {% if consulta.recetas %}
+  {% for receta in consulta.recetas %}
+  <div class="p-3 {% if not loop.last %}border-bottom{% endif %}">
+    <div style="font-size:.78rem;color:#6b7280;margin-bottom:.5rem">
+      Emitida el {{ receta.fecha_emision.strftime('%d/%m/%Y') }}
+    </div>
     <table class="table table-sm mb-0">
-      <thead class="table-light">
+      <thead>
         <tr><th>Medicamento</th><th>Dosis</th><th>Vía</th><th>Frecuencia</th><th>Duración</th></tr>
       </thead>
       <tbody>
@@ -82,9 +131,9 @@
       </tbody>
     </table>
   </div>
+  {% endfor %}
+  {% else %}
+  <div class="p-4 text-muted" style="font-size:.85rem">Sin recetas emitidas.</div>
+  {% endif %}
 </div>
-{% endfor %}
-{% else %}
-<p class="text-muted">Sin recetas emitidas.</p>
-{% endif %}
 {% endblock %}

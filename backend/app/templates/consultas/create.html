@@ -1,39 +1,56 @@
 {% extends "base.html" %}
 {% block title %}SECE — Nueva consulta{% endblock %}
+{% block page_title %}Registrar consulta{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-md-7">
-    <h4 class="mb-3">Registrar consulta</h4>
-    {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/citas">Citas</a></li>
+    <li class="breadcrumb-item active">Nueva consulta</li>
+  </ol>
+</nav>
 
-    {% if cita %}
-    <div class="card mb-3 border-primary">
-      <div class="card-body">
-        <p class="mb-0"><strong>Cita:</strong> {{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</p>
-      </div>
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if cita %}
+<div class="content-card mb-3" style="max-width:560px">
+  <div class="p-3" style="background:#f0f5fb;border-radius:8px">
+    <div style="font-size:.78rem;color:#6b7280;text-transform:uppercase;letter-spacing:.3px;font-weight:600">Cita</div>
+    <div style="font-size:.9rem;color:#1e3a5f;font-weight:600;margin-top:2px">
+      {{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }} — {{ cita.paciente.nombre_completo }}
     </div>
-    {% endif %}
+  </div>
+</div>
+{% endif %}
 
+<div class="content-card" style="max-width:560px">
+  <div class="content-card-header"><span class="card-title">Datos de la consulta</span></div>
+  <div class="p-4">
     <form method="post" action="/consultas/crear">
       <input type="hidden" name="cita_id" value="{{ cita_id }}">
-      <div class="mb-3">
-        <label class="form-label">Diagnóstico *</label>
-        <textarea name="diagnostico" class="form-control" rows="2" required></textarea>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Notas clínicas</label>
-        <textarea name="notas_clinicas" class="form-control" rows="3"></textarea>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Plan de tratamiento</label>
-        <textarea name="plan_tratamiento" class="form-control" rows="3"></textarea>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success">Registrar consulta</button>
-        <a href="/citas" class="btn btn-outline-secondary">Cancelar</a>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Diagnóstico *</label>
+          <textarea name="diagnostico" class="form-control" rows="2" required></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notas clínicas</label>
+          <textarea name="notas_clinicas" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Plan de tratamiento</label>
+          <textarea name="plan_tratamiento" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="col-12 d-flex gap-2 pt-1">
+          <button type="submit" class="btn btn-sece">Registrar consulta</button>
+          <a href="/citas" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
       </div>
     </form>
   </div>

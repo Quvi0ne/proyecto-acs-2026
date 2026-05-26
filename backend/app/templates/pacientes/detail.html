@@ -1,25 +1,62 @@
 {% extends "base.html" %}
-{% block title %}SECE — Expediente {{ paciente.nombre_completo }}{% endblock %}
+{% block title %}SECE — {{ paciente.nombre_completo }}{% endblock %}
+{% block page_title %}Expediente clínico{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
-  <div>
-    <h4>{{ paciente.nombre_completo }}</h4>
-    <span class="badge bg-secondary">{{ paciente.codigo_expediente }}</span>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/pacientes">Pacientes</a></li>
+    <li class="breadcrumb-item active">{{ paciente.nombre_completo }}</li>
+  </ol>
+</nav>
+
+<div class="content-card mb-4">
+  <div class="p-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="patient-avatar">
+        {{ paciente.nombre_completo.split()[0][0] }}{{ paciente.nombre_completo.split()[-1][0] if paciente.nombre_completo.split()|length > 1 else '' }}
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:1.05rem;color:#111827">{{ paciente.nombre_completo }}</div>
+        <div style="font-size:.8rem;color:#6b7280;margin-top:2px">
+          {{ paciente.codigo_expediente }}
+          &nbsp;·&nbsp;
+          {{ 'Masculino' if paciente.sexo.value == 'M' else 'Femenino' }}
+          &nbsp;·&nbsp;
+          {% set age = today.year - paciente.fecha_nacimiento.year - ((today.month, today.day) < (paciente.fecha_nacimiento.month, paciente.fecha_nacimiento.day)) %}
+          {{ age }} años
+        </div>
+      </div>
+      {% if user.rol.value == 'MEDICO' %}
+      <div class="ms-auto">
+        <a href="/consultas/crear?paciente_id={{ paciente.id }}" class="btn btn-sece btn-sm">+ Nueva consulta</a>
+      </div>
+      {% endif %}
+    </div>
   </div>
-  <a href="/pacientes" class="btn btn-outline-secondary btn-sm">← Volver</a>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Datos personales</h6>
-        <table class="table table-sm mb-0">
-          <tr><th>DPI</th><td>{{ paciente.dpi }}</td></tr>
-          <tr><th>Fecha nacimiento</th><td>{{ paciente.fecha_nacimiento }}</td></tr>
-          <tr><th>Sexo</th><td>{{ paciente.sexo.value }}</td></tr>
-          <tr><th>Teléfono</th><td>{{ paciente.telefono or '—' }}</td></tr>
+<ul class="nav nav-tabs mb-0" id="expTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-datos">Datos generales</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-consultas">Consultas ({{ historial|length }})</a></li>
+</ul>
+
+<div class="tab-content content-card" style="border-top:none;border-radius:0 0 8px 8px">
+  <div class="tab-pane fade show active p-4" id="tab-datos">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="form-section-title">Identificación</div>
+        <table class="table table-sm">
+          <tr><th style="width:40%">DPI</th><td>{{ paciente.dpi }}</td></tr>
+          <tr><th>Fecha nacimiento</th><td>{{ paciente.fecha_nacimiento.strftime('%d/%m/%Y') }}</td></tr>
+          <tr><th>Sexo</th><td>{{ 'Masculino' if paciente.sexo.value == 'M' else 'Femenino' }}</td></tr>
+        </table>
+      </div>
+      <div class="col-md-6">
+        <div class="form-section-title">Contacto</div>
+        <table class="table table-sm">
+          <tr><th style="width:40%">Teléfono</th><td>{{ paciente.telefono or '—' }}</td></tr>
           <tr><th>Correo</th><td>{{ paciente.email or '—' }}</td></tr>
           <tr><th>Dirección</th><td>{{ paciente.direccion or '—' }}</td></tr>
         </table>
@@ -27,44 +64,31 @@
     </div>
   </div>
 
-  {% if user.rol.value == 'MEDICO' %}
-  <div class="col-md-6 d-flex align-items-start">
-    <div class="card w-100">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Acciones</h6>
-        <a href="/citas?paciente_id={{ paciente.id }}" class="btn btn-primary btn-sm me-2">Ver citas</a>
-        <a href="/consultas/crear?paciente_id={{ paciente.id }}" class="btn btn-success btn-sm">Nueva consulta</a>
-      </div>
-    </div>
+  <div class="tab-pane fade" id="tab-consultas">
+    {% if historial %}
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Médico</th>
+          <th>Diagnóstico</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in historial %}
+        <tr>
+          <td>{{ c.fecha_consulta.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ c.medico_nombre }}</td>
+          <td>{{ c.diagnostico or '—' }}</td>
+          <td><a href="/consultas/{{ c.id }}" class="btn btn-outline-secondary btn-sm">Ver detalle</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="p-4 text-muted" style="font-size:.85rem">Este paciente no tiene consultas registradas.</div>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
-
-<h5 class="mb-3">Historial de consultas</h5>
-{% if historial %}
-<div class="table-responsive">
-  <table class="table table-hover table-sm">
-    <thead class="table-light">
-      <tr>
-        <th>Fecha</th>
-        <th>Médico</th>
-        <th>Diagnóstico</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in historial %}
-      <tr>
-        <td>{{ c.fecha_consulta.strftime('%d/%m/%Y %H:%M') }}</td>
-        <td>{{ c.medico_nombre }}</td>
-        <td>{{ c.diagnostico }}</td>
-        <td><a href="/consultas/{{ c.id }}" class="btn btn-outline-primary btn-sm">Ver detalle</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% else %}
-<p class="text-muted">Este paciente no tiene consultas registradas.</p>
-{% endif %}
 {% endblock %}

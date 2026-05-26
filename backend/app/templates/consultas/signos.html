@@ -1,13 +1,26 @@
 {% extends "base.html" %}
 {% block title %}SECE — Signos vitales{% endblock %}
+{% block page_title %}Signos vitales{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-md-6">
-    <h4 class="mb-3">Registrar signos vitales</h4>
-    {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/consultas/{{ consulta.id }}">Consulta</a></li>
+    <li class="breadcrumb-item active">Signos vitales</li>
+  </ol>
+</nav>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="content-card" style="max-width:520px">
+  <div class="content-card-header"><span class="card-title">Registrar signos vitales</span></div>
+  <div class="p-4">
     <form method="post" action="/consultas/{{ consulta.id }}/signos">
       <div class="row g-3">
         <div class="col-md-6">
@@ -31,10 +44,10 @@
           <input type="number" name="talla" class="form-control" step="0.01" placeholder="1.70">
         </div>
         <div class="col-12">
-          <small class="text-muted">El IMC se calculará automáticamente si se ingresan peso y talla.</small>
+          <p class="text-muted mb-0" style="font-size:.8rem">El IMC se calculará automáticamente si se ingresan peso y talla.</p>
         </div>
-        <div class="col-12 d-flex gap-2">
-          <button type="submit" class="btn btn-success">Guardar signos vitales</button>
+        <div class="col-12 d-flex gap-2 pt-1">
+          <button type="submit" class="btn btn-sece">Guardar signos vitales</button>
           <a href="/consultas/{{ consulta.id }}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
       </div>

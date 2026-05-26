@@ -1,45 +1,66 @@
 {% extends "base.html" %}
 {% block title %}SECE — Editar cita{% endblock %}
+{% block page_title %}Editar cita{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-md-6">
-    <h4 class="mb-3">Editar cita</h4>
-    {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/citas">Citas</a></li>
+    <li class="breadcrumb-item active">Editar cita</li>
+  </ol>
+</nav>
 
-    <div class="card mb-4">
-      <div class="card-body">
-        <p class="mb-1"><strong>Fecha:</strong> {{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</p>
-        <p class="mb-1"><strong>Estado:</strong> {{ cita.estado.value }}</p>
-        <p class="mb-0"><strong>Motivo actual:</strong> {{ cita.motivo or '—' }}</p>
-      </div>
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div style="max-width:520px">
+  <div class="content-card mb-3">
+    <div class="content-card-header"><span class="card-title">Información actual</span></div>
+    <div class="p-4">
+      <table class="table table-sm mb-0">
+        <tr><th style="width:45%">Fecha</th><td>{{ cita.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</td></tr>
+        <tr><th>Paciente</th><td>{{ cita.paciente.nombre_completo }}</td></tr>
+        <tr><th>Médico</th><td>{{ cita.medico.usuario.nombre }}</td></tr>
+        <tr><th>Estado</th><td><span class="badge-prog">{{ cita.estado.value }}</span></td></tr>
+        <tr><th>Motivo</th><td>{{ cita.motivo or '—' }}</td></tr>
+      </table>
     </div>
+  </div>
 
-    <h6 class="mb-3">Reprogramar</h6>
-    <form method="post" action="/citas/{{ cita.id }}/editar" class="mb-4">
-      <input type="hidden" name="accion" value="reprogramar">
-      <div class="mb-3">
-        <label class="form-label">Nueva fecha y hora *</label>
-        <input type="datetime-local" name="fecha_hora" class="form-control" required>
-      </div>
-      <button type="submit" class="btn btn-primary btn-sm">Reprogramar</button>
-    </form>
+  <div class="content-card mb-3">
+    <div class="content-card-header"><span class="card-title">Reprogramar</span></div>
+    <div class="p-4">
+      <form method="post" action="/citas/{{ cita.id }}/editar">
+        <input type="hidden" name="accion" value="reprogramar">
+        <div class="mb-3">
+          <label class="form-label">Nueva fecha y hora *</label>
+          <input type="datetime-local" name="fecha_hora" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-sece btn-sm">Reprogramar</button>
+      </form>
+    </div>
+  </div>
 
-    <hr>
-    <h6 class="mb-3">Cancelar cita</h6>
-    <form method="post" action="/citas/{{ cita.id }}/editar">
-      <input type="hidden" name="accion" value="cancelar">
-      <div class="mb-3">
-        <label class="form-label">Motivo de cancelación</label>
-        <input type="text" name="motivo" class="form-control">
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-danger btn-sm">Cancelar cita</button>
-        <a href="/citas" class="btn btn-outline-secondary btn-sm">Volver</a>
-      </div>
-    </form>
+  <div class="content-card">
+    <div class="content-card-header"><span class="card-title">Cancelar cita</span></div>
+    <div class="p-4">
+      <form method="post" action="/citas/{{ cita.id }}/editar">
+        <input type="hidden" name="accion" value="cancelar">
+        <div class="mb-3">
+          <label class="form-label">Motivo de cancelación</label>
+          <input type="text" name="motivo" class="form-control">
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-danger btn-sm">Cancelar cita</button>
+          <a href="/citas" class="btn btn-outline-secondary btn-sm">Volver</a>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

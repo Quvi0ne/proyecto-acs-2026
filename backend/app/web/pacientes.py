@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
@@ -98,5 +98,10 @@ async def detalle_paciente(
         return RedirectResponse("/pacientes?error=Paciente no encontrado", status_code=302)
     historial = await consulta_repo.list_historial_paciente(db, paciente_id)
     return templates.TemplateResponse(
-        request, "pacientes/detail.html", {"user": user, "paciente": paciente, "historial": historial}
+        request, "pacientes/detail.html", {
+            "user": user,
+            "paciente": paciente,
+            "historial": historial,
+            "today": date.today(),
+        }
     )

@@ -1,52 +1,71 @@
 {% extends "base.html" %}
 {% block title %}SECE — Pacientes{% endblock %}
+{% block page_title %}Pacientes{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4>Pacientes</h4>
-  {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
-  <a href="/pacientes/crear" class="btn btn-success btn-sm">+ Nuevo paciente</a>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item active">Pacientes</li>
+  </ol>
+</nav>
+
+<div class="content-card">
+  <div class="content-card-header">
+    <span class="card-title">Lista de pacientes</span>
+    {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+    <a href="/pacientes/crear" class="btn btn-sece btn-sm">+ Nuevo paciente</a>
+    {% endif %}
+  </div>
+  <div class="p-3 border-bottom" style="background:#fafafa">
+    <form class="d-flex gap-2" method="get">
+      <input type="search" name="q" class="form-control form-control-sm" style="max-width:340px"
+             placeholder="Buscar por nombre, DPI o código..." value="{{ q }}">
+      <button type="submit" class="btn btn-sece btn-sm">Buscar</button>
+      {% if q %}
+      <a href="/pacientes" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if pacientes %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Código</th>
+          <th>DPI</th>
+          <th>Nacimiento</th>
+          <th>Sexo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pacientes %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="patient-avatar" style="width:32px;height:32px;font-size:.75rem">
+                {{ p.nombre_completo.split()[0][0] }}{{ p.nombre_completo.split()[-1][0] if p.nombre_completo.split()|length > 1 else '' }}
+              </div>
+              <span>{{ p.nombre_completo }}</span>
+            </div>
+          </td>
+          <td><code style="font-size:.8rem">{{ p.codigo_expediente }}</code></td>
+          <td>{{ p.dpi }}</td>
+          <td>{{ p.fecha_nacimiento.strftime('%d/%m/%Y') }}</td>
+          <td>{{ 'Masculino' if p.sexo.value == 'M' else 'Femenino' }}</td>
+          <td><a href="/pacientes/{{ p.id }}" class="btn btn-outline-secondary btn-sm">Ver expediente</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif q %}
+  <div class="p-4 text-muted" style="font-size:.85rem">No se encontraron pacientes para "{{ q }}".</div>
+  {% else %}
+  <div class="p-4 text-muted" style="font-size:.85rem">No hay pacientes registrados.</div>
   {% endif %}
 </div>
-
-<form class="d-flex gap-2 mb-4" method="get">
-  <input type="search" name="q" class="form-control" placeholder="Buscar por nombre, DPI o código..." value="{{ q }}">
-  <button type="submit" class="btn btn-primary">Buscar</button>
-  {% if q %}
-  <a href="/pacientes" class="btn btn-outline-secondary">Limpiar</a>
-  {% endif %}
-</form>
-
-{% if pacientes %}
-<div class="table-responsive">
-  <table class="table table-hover table-sm">
-    <thead class="table-light">
-      <tr>
-        <th>Código</th>
-        <th>Nombre</th>
-        <th>DPI</th>
-        <th>Fecha nacimiento</th>
-        <th>Sexo</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in pacientes %}
-      <tr>
-        <td><code>{{ p.codigo_expediente }}</code></td>
-        <td>{{ p.nombre_completo }}</td>
-        <td>{{ p.dpi }}</td>
-        <td>{{ p.fecha_nacimiento }}</td>
-        <td>{{ p.sexo.value }}</td>
-        <td><a href="/pacientes/{{ p.id }}" class="btn btn-outline-primary btn-sm">Ver expediente</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% elif q %}
-<p class="text-muted">No se encontraron pacientes para "{{ q }}".</p>
-{% else %}
-<p class="text-muted">No hay pacientes registrados.</p>
-{% endif %}
 {% endblock %}

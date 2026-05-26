@@ -1,41 +1,80 @@
 {% extends "base.html" %}
 {% block title %}SECE — Inicio{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<h4 class="mb-4">Bienvenido, {{ user.nombre }}</h4>
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="stat-card">
+      <div class="stat-number">{{ citas_hoy|length }}</div>
+      <div class="stat-label">Citas hoy</div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_pacientes }}</div>
+      <div class="stat-label">Pacientes registrados</div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_medicos }}</div>
+      <div class="stat-label">Médicos activos</div>
+    </div>
+  </div>
+</div>
 
-<div class="row g-3">
-  {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">Pacientes</h5>
-        <p class="card-text text-muted">Buscar y registrar pacientes.</p>
-        <a href="/pacientes" class="btn btn-primary btn-sm">Ir a Pacientes</a>
-      </div>
-    </div>
+<div class="content-card">
+  <div class="content-card-header">
+    <span class="card-title">Citas de hoy</span>
+    {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+    <a href="/citas/crear" class="btn btn-sece btn-sm">+ Nueva cita</a>
+    {% endif %}
   </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">Citas</h5>
-        <p class="card-text text-muted">Programar y gestionar citas médicas.</p>
-        <a href="/citas" class="btn btn-primary btn-sm">Ir a Citas</a>
-      </div>
-    </div>
+  {% if citas_hoy %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Paciente</th>
+          <th>Médico</th>
+          <th>Estado</th>
+          <th>Motivo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in citas_hoy %}
+        <tr>
+          <td>{{ c.fecha_hora.strftime('%H:%M') }}</td>
+          <td>{{ c.paciente.nombre_completo }}</td>
+          <td>{{ c.medico.usuario.nombre }}</td>
+          <td>
+            {% if c.estado.value == 'PROGRAMADA' %}
+            <span class="badge-prog">Programada</span>
+            {% elif c.estado.value == 'COMPLETADA' %}
+            <span class="badge-comp">Completada</span>
+            {% else %}
+            <span class="badge-canc">Cancelada</span>
+            {% endif %}
+          </td>
+          <td>{{ c.motivo or '—' }}</td>
+          <td>
+            {% if c.estado.value == 'PROGRAMADA' %}
+            <a href="/citas/{{ c.id }}/editar" class="btn btn-outline-secondary btn-sm">Editar</a>
+            {% if user.rol.value == 'MEDICO' %}
+            <a href="/consultas/crear?cita_id={{ c.id }}" class="btn btn-sece btn-sm ms-1">Consultar</a>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  {% endif %}
-
-  {% if user.rol.value in ['MEDICO', 'ADMIN'] %}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">Expedientes</h5>
-        <p class="card-text text-muted">Ver historial clínico y registrar consultas.</p>
-        <a href="/pacientes" class="btn btn-primary btn-sm">Buscar Paciente</a>
-      </div>
-    </div>
-  </div>
+  {% else %}
+  <div class="px-4 py-3 text-muted" style="font-size:.85rem">No hay citas programadas para hoy.</div>
   {% endif %}
 </div>
 {% endblock %}
