@@ -63,6 +63,13 @@ async def existe_conflicto(
     return result.scalar_one() > 0
 
 
+async def count_by_medico(db: AsyncSession, medico_id: str) -> int:
+    result = await db.execute(
+        select(func.count()).where(Cita.medico_id == medico_id)
+    )
+    return result.scalar_one()
+
+
 async def delete(db: AsyncSession, cita_id: str) -> None:
     result = await db.execute(select(Cita).where(Cita.id == cita_id))
     cita = result.scalar_one_or_none()

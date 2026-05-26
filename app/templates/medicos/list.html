@@ -46,8 +46,8 @@
           <td>{{ m.usuario.email }}</td>
           <td>
             {% if user.rol.value == 'ADMIN' %}
-            <form method="post" action="/medicos/{{ m.id }}/desactivar" onsubmit="return confirm('¿Desactivar al Dr. {{ m.usuario.nombre }}?')">
-              <button type="submit" class="btn btn-outline-danger btn-sm">Desactivar</button>
+            <form method="post" action="/medicos/{{ m.id }}/eliminar" onsubmit="return confirm('¿Eliminar al Dr. {{ m.usuario.nombre }}? Esta acción no se puede deshacer.')">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
             </form>
             {% endif %}
           </td>

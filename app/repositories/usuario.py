@@ -27,6 +27,14 @@ async def list_all(db: AsyncSession) -> list[Usuario]:
     return list(result.scalars().all())
 
 
+async def delete(db: AsyncSession, user_id: str) -> None:
+    result = await db.execute(select(Usuario).where(Usuario.id == user_id))
+    usuario = result.scalar_one_or_none()
+    if usuario:
+        await db.delete(usuario)
+        await db.commit()
+
+
 async def create(db: AsyncSession, usuario: Usuario) -> Usuario:
     db.add(usuario)
     await db.commit()

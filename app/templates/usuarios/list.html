@@ -63,11 +63,9 @@
             {% elif es_ultimo_admin %}
             <span class="text-muted" style="font-size:.78rem">Único admin</span>
             {% else %}
-            <form method="post" action="/usuarios/{{ u.id }}/activo"
-                  onsubmit="return confirm('¿{{ 'Desactivar' if u.activo else 'Activar' }} a {{ u.nombre }}?')">
-              <button type="submit" class="btn btn-sm {% if u.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-                {{ 'Desactivar' if u.activo else 'Activar' }}
-              </button>
+            <form method="post" action="/usuarios/{{ u.id }}/eliminar"
+                  onsubmit="return confirm('¿Eliminar a {{ u.nombre }}? Esta acción no se puede deshacer.')">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
             </form>
             {% endif %}
           </td>

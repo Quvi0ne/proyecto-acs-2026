@@ -8,6 +8,7 @@ from app.core.security import hash_password
 from app.models.enums import Rol
 from app.models.medico import Medico
 from app.models.usuario import Usuario
+from app.repositories import cita as cita_repo
 from app.repositories import medico as medico_repo
 from app.repositories import usuario as repo
 from app.web.deps import get_web_user
@@ -112,8 +113,8 @@ async def cambiar_rol(
     return RedirectResponse(f"/usuarios?ok=Rol de {target.nombre} actualizado", status_code=303)
 
 
-@router.post("/usuarios/{usuario_id}/activo")
-async def toggle_activo(
+@router.post("/usuarios/{usuario_id}/eliminar")
+async def eliminar_usuario(
     usuario_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -125,15 +126,24 @@ async def toggle_activo(
     if not target:
         return RedirectResponse("/usuarios?error=Usuario no encontrado", status_code=302)
     if target.id == user.id:
-        return RedirectResponse("/usuarios?error=No puedes desactivar tu propia cuenta", status_code=302)
-    if target.activo and target.rol == Rol.ADMIN:
+        return RedirectResponse("/usuarios?error=No puedes eliminar tu propia cuenta", status_code=302)
+    if target.rol == Rol.ADMIN:
         active_admins = await repo.count_active_admins(db)
         if active_admins <= 1:
             return RedirectResponse(
-                "/usuarios?error=No puedes desactivar al único administrador activo",
+                "/usuarios?error=No puedes eliminar al único administrador",
                 status_code=302,
             )
-    target.activo = not target.activo
-    accion = "activado" if target.activo else "desactivado"
-    await repo.save(db, target)
-    return RedirectResponse(f"/usuarios?ok=Usuario {target.nombre} {accion}", status_code=303)
+    if target.rol == Rol.MEDICO:
+        medico = await medico_repo.get_by_usuario_id(db, usuario_id)
+        if medico:
+            total_citas = await cita_repo.count_by_medico(db, medico.id)
+            if total_citas > 0:
+                return RedirectResponse(
+                    f"/usuarios?error=No se puede eliminar: el médico tiene {total_citas} cita(s) registrada(s)",
+                    status_code=302,
+                )
+            await medico_repo.delete(db, medico.id)
+    nombre = target.nombre
+    await repo.delete(db, usuario_id)
+    return RedirectResponse(f"/usuarios?ok=Usuario {nombre} eliminado", status_code=303)
