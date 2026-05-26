@@ -32,6 +32,13 @@ async def count_by_year(db: AsyncSession, year: int) -> int:
     return result.scalar_one()
 
 
+async def list_all(db: AsyncSession, limit: int = 100) -> list[Paciente]:
+    result = await db.execute(
+        select(Paciente).order_by(Paciente.nombre_completo).limit(limit)
+    )
+    return list(result.scalars().all())
+
+
 async def search(db: AsyncSession, q: str, limit: int = 20) -> list[Paciente]:
     result = await db.execute(
         select(Paciente)

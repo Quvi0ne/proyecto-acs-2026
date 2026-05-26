@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}SECE — Expediente {{ paciente.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h4>{{ paciente.nombre_completo }}</h4>
+    <span class="badge bg-secondary">{{ paciente.codigo_expediente }}</span>
+  </div>
+  <a href="/pacientes" class="btn btn-outline-secondary btn-sm">← Volver</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Datos personales</h6>
+        <table class="table table-sm mb-0">
+          <tr><th>DPI</th><td>{{ paciente.dpi }}</td></tr>
+          <tr><th>Fecha nacimiento</th><td>{{ paciente.fecha_nacimiento }}</td></tr>
+          <tr><th>Sexo</th><td>{{ paciente.sexo.value }}</td></tr>
+          <tr><th>Teléfono</th><td>{{ paciente.telefono or '—' }}</td></tr>
+          <tr><th>Correo</th><td>{{ paciente.email or '—' }}</td></tr>
+          <tr><th>Dirección</th><td>{{ paciente.direccion or '—' }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if user.rol.value == 'MEDICO' %}
+  <div class="col-md-6 d-flex align-items-start">
+    <div class="card w-100">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Acciones</h6>
+        <a href="/citas?paciente_id={{ paciente.id }}" class="btn btn-primary btn-sm me-2">Ver citas</a>
+        <a href="/consultas/crear?paciente_id={{ paciente.id }}" class="btn btn-success btn-sm">Nueva consulta</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<h5 class="mb-3">Historial de consultas</h5>
+{% if historial %}
+<div class="table-responsive">
+  <table class="table table-hover table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>Fecha</th>
+        <th>Médico</th>
+        <th>Diagnóstico</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in historial %}
+      <tr>
+        <td>{{ c.fecha_consulta.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ c.medico_nombre }}</td>
+        <td>{{ c.diagnostico }}</td>
+        <td><a href="/consultas/{{ c.id }}" class="btn btn-outline-primary btn-sm">Ver detalle</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-muted">Este paciente no tiene consultas registradas.</p>
+{% endif %}
+{% endblock %}

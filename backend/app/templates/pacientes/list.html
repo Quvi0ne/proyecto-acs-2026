@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}SECE — Pacientes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Pacientes</h4>
+  {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+  <a href="/pacientes/crear" class="btn btn-success btn-sm">+ Nuevo paciente</a>
+  {% endif %}
+</div>
+
+<form class="d-flex gap-2 mb-4" method="get">
+  <input type="search" name="q" class="form-control" placeholder="Buscar por nombre, DPI o código..." value="{{ q }}">
+  <button type="submit" class="btn btn-primary">Buscar</button>
+  {% if q %}
+  <a href="/pacientes" class="btn btn-outline-secondary">Limpiar</a>
+  {% endif %}
+</form>
+
+{% if pacientes %}
+<div class="table-responsive">
+  <table class="table table-hover table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>DPI</th>
+        <th>Fecha nacimiento</th>
+        <th>Sexo</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pacientes %}
+      <tr>
+        <td><code>{{ p.codigo_expediente }}</code></td>
+        <td>{{ p.nombre_completo }}</td>
+        <td>{{ p.dpi }}</td>
+        <td>{{ p.fecha_nacimiento }}</td>
+        <td>{{ p.sexo.value }}</td>
+        <td><a href="/pacientes/{{ p.id }}" class="btn btn-outline-primary btn-sm">Ver expediente</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% elif q %}
+<p class="text-muted">No se encontraron pacientes para "{{ q }}".</p>
+{% else %}
+<p class="text-muted">No hay pacientes registrados.</p>
+{% endif %}
+{% endblock %}
