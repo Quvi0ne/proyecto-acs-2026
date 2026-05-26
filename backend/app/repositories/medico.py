@@ -25,6 +25,12 @@ async def list_active(db: AsyncSession) -> list[Medico]:
     return list(result.scalars().all())
 
 
+async def save(db: AsyncSession, medico: Medico) -> Medico:
+    await db.commit()
+    await db.refresh(medico)
+    return medico
+
+
 async def create(db: AsyncSession, medico: Medico) -> Medico:
     db.add(medico)
     await db.commit()

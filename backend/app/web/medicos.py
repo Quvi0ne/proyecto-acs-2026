@@ -31,6 +31,23 @@ async def list_medicos(
     )
 
 
+@router.post("/medicos/{medico_id}/desactivar")
+async def desactivar_medico(
+    medico_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_web_user),
+):
+    if user.rol.value != "ADMIN":
+        return RedirectResponse("/medicos?error=Solo administradores pueden desactivar médicos", status_code=302)
+    medico = await repo.get_by_id(db, medico_id)
+    if not medico:
+        return RedirectResponse("/medicos?error=Médico no encontrado", status_code=302)
+    medico.activo = False
+    await repo.save(db, medico)
+    return RedirectResponse("/medicos?ok=Médico desactivado", status_code=303)
+
+
 @router.get("/medicos/crear")
 async def crear_medico_get(request: Request, user=Depends(get_web_user)):
     if user.rol.value != "ADMIN":

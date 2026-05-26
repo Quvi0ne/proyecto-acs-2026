@@ -52,12 +52,17 @@
             {% endif %}
           </td>
           <td>{{ c.motivo or '—' }}</td>
-          <td class="d-flex gap-1">
+          <td class="d-flex gap-1 flex-wrap">
             {% if c.estado.value == 'PROGRAMADA' %}
             <a href="/citas/{{ c.id }}/editar" class="btn btn-outline-secondary btn-sm">Editar</a>
             {% if user.rol.value == 'MEDICO' %}
             <a href="/consultas/crear?cita_id={{ c.id }}" class="btn btn-sece btn-sm">Consultar</a>
             {% endif %}
+            {% endif %}
+            {% if c.estado.value != 'COMPLETADA' and user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+            <form method="post" action="/citas/{{ c.id }}/eliminar" onsubmit="return confirm('¿Eliminar esta cita?')">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+            </form>
             {% endif %}
           </td>
         </tr>

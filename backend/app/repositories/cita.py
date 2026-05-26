@@ -23,7 +23,14 @@ async def list_by_fecha(db: AsyncSession, fecha: date) -> list[Cita]:
 
 
 async def get_by_id(db: AsyncSession, cita_id: str) -> Cita | None:
-    result = await db.execute(select(Cita).where(Cita.id == cita_id))
+    result = await db.execute(
+        select(Cita)
+        .where(Cita.id == cita_id)
+        .options(
+            selectinload(Cita.paciente),
+            selectinload(Cita.medico).selectinload(Medico.usuario),
+        )
+    )
     return result.scalar_one_or_none()
 
 
@@ -42,6 +49,14 @@ async def existe_conflicto(
         q = q.where(Cita.id != exclude_id)
     result = await db.execute(q)
     return result.scalar_one() > 0
+
+
+async def delete(db: AsyncSession, cita_id: str) -> None:
+    result = await db.execute(select(Cita).where(Cita.id == cita_id))
+    cita = result.scalar_one_or_none()
+    if cita:
+        await db.delete(cita)
+        await db.commit()
 
 
 async def create(db: AsyncSession, cita: Cita) -> Cita:

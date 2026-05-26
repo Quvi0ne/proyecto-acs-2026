@@ -79,6 +79,25 @@ async def crear_cita_post(
     return RedirectResponse(f"/citas?ok=Cita programada exitosamente&fecha={dt.date()}", status_code=303)
 
 
+@router.post("/citas/{cita_id}/eliminar")
+async def eliminar_cita(
+    cita_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_web_user),
+):
+    cita = await repo.get_by_id(db, cita_id)
+    if not cita:
+        return RedirectResponse("/citas?error=Cita no encontrada", status_code=302)
+    if cita.estado == EstadoCita.COMPLETADA:
+        return RedirectResponse(
+            "/citas?error=No se puede eliminar una cita completada (tiene consulta asociada)",
+            status_code=302,
+        )
+    await repo.delete(db, cita_id)
+    return RedirectResponse("/citas?ok=Cita eliminada", status_code=303)
+
+
 @router.get("/citas/{cita_id}/editar")
 async def editar_cita_get(
     cita_id: str,

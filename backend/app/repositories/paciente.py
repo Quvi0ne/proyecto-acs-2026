@@ -60,6 +60,22 @@ async def search(db: AsyncSession, q: str, limit: int = 20) -> list[Paciente]:
     return list(result.scalars().all())
 
 
+async def count_citas(db: AsyncSession, paciente_id: str) -> int:
+    from app.models.cita import Cita
+    result = await db.execute(
+        select(func.count()).where(Cita.paciente_id == paciente_id)
+    )
+    return result.scalar_one()
+
+
+async def delete(db: AsyncSession, paciente_id: str) -> None:
+    result = await db.execute(select(Paciente).where(Paciente.id == paciente_id))
+    paciente = result.scalar_one_or_none()
+    if paciente:
+        await db.delete(paciente)
+        await db.commit()
+
+
 async def create(db: AsyncSession, paciente: Paciente) -> Paciente:
     db.add(paciente)
     await db.commit()

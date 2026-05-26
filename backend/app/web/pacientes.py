@@ -86,6 +86,29 @@ async def crear_paciente_post(
     return RedirectResponse(f"/pacientes?ok=Paciente {nombre_completo} registrado", status_code=303)
 
 
+@router.post("/pacientes/{paciente_id}/eliminar")
+async def eliminar_paciente(
+    paciente_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_web_user),
+):
+    if user.rol.value != "ADMIN":
+        return RedirectResponse("/pacientes?error=Solo administradores pueden eliminar pacientes", status_code=302)
+    paciente = await repo.get_by_id(db, paciente_id)
+    if not paciente:
+        return RedirectResponse("/pacientes?error=Paciente no encontrado", status_code=302)
+    total_citas = await repo.count_citas(db, paciente_id)
+    if total_citas > 0:
+        return RedirectResponse(
+            f"/pacientes/{paciente_id}?error=No se puede eliminar: el paciente tiene {total_citas} cita(s) registrada(s)",
+            status_code=302,
+        )
+    nombre = paciente.nombre_completo
+    await repo.delete(db, paciente_id)
+    return RedirectResponse(f"/pacientes?ok=Paciente {nombre} eliminado", status_code=303)
+
+
 @router.get("/pacientes/{paciente_id}")
 async def detalle_paciente(
     paciente_id: str,

@@ -56,7 +56,14 @@
           <td>{{ p.dpi }}</td>
           <td>{{ p.fecha_nacimiento.strftime('%d/%m/%Y') }}</td>
           <td>{{ 'Masculino' if p.sexo.value == 'M' else 'Femenino' }}</td>
-          <td><a href="/pacientes/{{ p.id }}" class="btn btn-outline-secondary btn-sm">Ver expediente</a></td>
+          <td class="d-flex gap-1">
+            <a href="/pacientes/{{ p.id }}" class="btn btn-outline-secondary btn-sm">Ver expediente</a>
+            {% if user.rol.value == 'ADMIN' %}
+            <form method="post" action="/pacientes/{{ p.id }}/eliminar" onsubmit="return confirm('¿Eliminar a {{ p.nombre_completo }}? Esta acción no se puede deshacer.')">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+            </form>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

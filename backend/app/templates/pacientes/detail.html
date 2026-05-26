@@ -28,11 +28,16 @@
           {{ age }} años
         </div>
       </div>
-      {% if user.rol.value == 'MEDICO' %}
-      <div class="ms-auto">
+      <div class="ms-auto d-flex gap-2">
+        {% if user.rol.value == 'MEDICO' %}
         <a href="/consultas/crear?paciente_id={{ paciente.id }}" class="btn btn-sece btn-sm">+ Nueva consulta</a>
+        {% endif %}
+        {% if user.rol.value == 'ADMIN' %}
+        <form method="post" action="/pacientes/{{ paciente.id }}/eliminar" onsubmit="return confirm('¿Eliminar a {{ paciente.nombre_completo }}? Esta acción no se puede deshacer.')">
+          <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar paciente</button>
+        </form>
+        {% endif %}
       </div>
-      {% endif %}
     </div>
   </div>
 </div>

@@ -27,6 +27,7 @@
           <th>Especialidad</th>
           <th>No. colegiado</th>
           <th>Correo</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -43,6 +44,13 @@
           <td>{{ m.especialidad }}</td>
           <td><code style="font-size:.8rem">{{ m.num_colegiado }}</code></td>
           <td>{{ m.usuario.email }}</td>
+          <td>
+            {% if user.rol.value == 'ADMIN' %}
+            <form method="post" action="/medicos/{{ m.id }}/desactivar" onsubmit="return confirm('¿Desactivar al Dr. {{ m.usuario.nombre }}?')">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Desactivar</button>
+            </form>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
