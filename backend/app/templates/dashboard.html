@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}SECE — Inicio{% endblock %}
+
+{% block content %}
+<h4 class="mb-4">Bienvenido, {{ user.nombre }}</h4>
+
+<div class="row g-3">
+  {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Pacientes</h5>
+        <p class="card-text text-muted">Buscar y registrar pacientes.</p>
+        <a href="/pacientes" class="btn btn-primary btn-sm">Ir a Pacientes</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Citas</h5>
+        <p class="card-text text-muted">Programar y gestionar citas médicas.</p>
+        <a href="/citas" class="btn btn-primary btn-sm">Ir a Citas</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if user.rol.value in ['MEDICO', 'ADMIN'] %}
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Expedientes</h5>
+        <p class="card-text text-muted">Ver historial clínico y registrar consultas.</p>
+        <a href="/pacientes" class="btn btn-primary btn-sm">Buscar Paciente</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

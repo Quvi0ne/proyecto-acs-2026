@@ -1,0 +1,51 @@
+from fastapi import APIRouter, Depends, Form, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.security import create_access_token, verify_password
+from app.repositories import usuario as usuario_repo
+from app.web.deps import get_web_user
+from app.web.templates import templates
+
+router = APIRouter(tags=["Web"])
+
+
+@router.get("/login")
+async def login_get(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "user": None, "error": None})
+
+
+@router.post("/login")
+async def login_post(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await usuario_repo.get_by_email(db, email)
+    if not user or not user.activo or not verify_password(password, user.password_hash):
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "user": None, "error": "Correo o contraseña incorrectos"},
+            status_code=401,
+        )
+    token = create_access_token(sub=user.id, rol=user.rol.value)
+    response = RedirectResponse("/", status_code=302)
+    response.set_cookie("sece_token", token, httponly=True, samesite="lax")
+    return response
+
+
+@router.get("/logout")
+async def logout():
+    response = RedirectResponse("/login", status_code=302)
+    response.delete_cookie("sece_token")
+    return response
+
+
+@router.get("/")
+async def dashboard(
+    request: Request,
+    user=Depends(get_web_user),
+):
+    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
