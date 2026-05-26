@@ -222,6 +222,13 @@
         <span class="nav-dot"></span>Médicos
       </a>
     </li>
+    {% if user.rol.value == 'ADMIN' %}
+    <li>
+      <a href="/usuarios" class="{{ 'active' if request.url.path.startswith('/usuarios') else '' }}">
+        <span class="nav-dot"></span>Usuarios
+      </a>
+    </li>
+    {% endif %}
     {% endif %}
     {% if user.rol.value == 'MEDICO' %}
     <li>

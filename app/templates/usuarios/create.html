@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}SECE — Nuevo usuario{% endblock %}
+{% block page_title %}Crear usuario{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/usuarios">Usuarios</a></li>
+    <li class="breadcrumb-item active">Nuevo usuario</li>
+  </ol>
+</nav>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="content-card" style="max-width:520px">
+  <div class="content-card-header"><span class="card-title">Datos del usuario</span></div>
+  <div class="p-4">
+    <p style="font-size:.82rem;color:#6b7280" class="mb-4">
+      Para registrar un <strong>médico</strong> usa
+      <a href="/medicos/crear">Médicos → Nuevo médico</a> — requiere colegiado y especialidad.
+    </p>
+    <form method="post" action="/usuarios/crear">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nombre completo *</label>
+          <input type="text" name="nombre" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Correo electrónico *</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Contraseña *</label>
+          <input type="text" name="password" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Rol *</label>
+          <select name="rol" class="form-select" required>
+            <option value="RECEPCIONISTA">Recepcionista</option>
+            <option value="ADMIN">Administrador</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex gap-2 pt-1">
+          <button type="submit" class="btn btn-sece">Crear usuario</button>
+          <a href="/usuarios" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
