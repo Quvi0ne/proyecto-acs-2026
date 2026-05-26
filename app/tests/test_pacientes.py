@@ -3,7 +3,7 @@ import time
 import pytest
 from httpx import AsyncClient
 
-# Unique DPI per test session so re-runs don't collide with existing DB data
+# DPI único por sesión de prueba para evitar colisiones con datos existentes en la BD
 _DPI = str(time.time_ns() % 10_000_000_000_000).zfill(13)
 
 PACIENTE_BASE = {

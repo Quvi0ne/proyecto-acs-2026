@@ -7,8 +7,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.main import app
 
-# Use NullPool so each request gets a fresh connection — avoids event-loop
-# mismatch errors when pytest-asyncio creates a new loop per test.
+# NullPool evita errores de event-loop cuando pytest-asyncio crea un nuevo loop por prueba.
 _test_engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
 _TestSession = async_sessionmaker(_test_engine, expire_on_commit=False)
 

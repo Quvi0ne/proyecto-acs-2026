@@ -118,10 +118,10 @@ async def test_patch_cancelada_rechazado(client: AsyncClient, auth_headers: dict
     )
     cita_id = cita.json()["id"]
 
-    # Cancel it first
+    # Cancelar la cita primero
     await client.patch(f"/api/v1/citas/{cita_id}", json={"estado": "CANCELADA"}, headers=auth_headers)
 
-    # Try to patch the cancelled cita — must return 422
+    # Intentar modificar la cita cancelada — debe retornar 422
     resp = await client.patch(f"/api/v1/citas/{cita_id}", json={"motivo": "intento tardío"}, headers=auth_headers)
     assert resp.status_code == 422
 
