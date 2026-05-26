@@ -12,11 +12,13 @@
 
 <div class="content-card">
   <div class="content-card-header">
-    <form class="d-flex gap-2 align-items-center" method="get">
+    <form class="d-flex gap-2 align-items-center flex-wrap" method="get">
       <label class="form-label mb-0" style="font-size:.82rem;color:#374151">Fecha:</label>
-      <input type="date" name="fecha" class="form-control form-control-sm" style="width:170px" value="{{ fecha }}">
-      <button type="submit" class="btn btn-sece btn-sm">Ver</button>
-      <a href="/citas" class="btn btn-outline-secondary btn-sm">Hoy</a>
+      <input type="date" name="fecha" class="form-control form-control-sm" style="width:170px"
+             value="{{ fecha }}" {% if todas %}disabled{% endif %}>
+      <button type="submit" class="btn btn-sece btn-sm" {% if todas %}disabled{% endif %}>Ver</button>
+      <a href="/citas" class="btn btn-outline-secondary btn-sm {% if not todas %}active{% endif %}">Hoy</a>
+      <a href="/citas?todas=1" class="btn btn-outline-secondary btn-sm {% if todas %}active{% endif %}">Todas</a>
     </form>
     {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
     <a href="/citas/crear" class="btn btn-sece btn-sm">+ Nueva cita</a>
@@ -28,7 +30,7 @@
     <table class="table mb-0">
       <thead>
         <tr>
-          <th>Hora</th>
+          <th>{% if todas %}Fecha y hora{% else %}Hora{% endif %}</th>
           <th>Paciente</th>
           <th>Médico</th>
           <th>Estado</th>
@@ -39,7 +41,7 @@
       <tbody>
         {% for c in citas %}
         <tr>
-          <td>{{ c.fecha_hora.strftime('%H:%M') }}</td>
+          <td>{% if todas %}{{ c.fecha_hora.strftime('%d/%m/%Y %H:%M') }}{% else %}{{ c.fecha_hora.strftime('%H:%M') }}{% endif %}</td>
           <td>{{ c.paciente.nombre_completo }}</td>
           <td>{{ c.medico.usuario.nombre }}</td>
           <td>
@@ -71,7 +73,9 @@
     </table>
   </div>
   {% else %}
-  <div class="p-4 text-muted" style="font-size:.85rem">No hay citas para el {{ fecha }}.</div>
+  <div class="p-4 text-muted" style="font-size:.85rem">
+    {% if todas %}No hay citas registradas.{% else %}No hay citas para el {{ fecha }}.{% endif %}
+  </div>
   {% endif %}
 </div>
 {% endblock %}

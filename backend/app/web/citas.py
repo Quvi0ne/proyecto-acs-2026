@@ -20,13 +20,19 @@ router = APIRouter(tags=["Web"])
 async def list_citas(
     request: Request,
     fecha: str = "",
+    todas: str = "",
     db: AsyncSession = Depends(get_db),
     user=Depends(get_web_user),
 ):
+    if todas:
+        citas = await repo.list_all(db)
+        return templates.TemplateResponse(
+            request, "citas/list.html", {"user": user, "citas": citas, "fecha": "", "todas": True}
+        )
     hoy = date.fromisoformat(fecha) if fecha else date.today()
     citas = await repo.list_by_fecha(db, hoy)
     return templates.TemplateResponse(
-        request, "citas/list.html", {"user": user, "citas": citas, "fecha": hoy}
+        request, "citas/list.html", {"user": user, "citas": citas, "fecha": hoy, "todas": False}
     )
 
 

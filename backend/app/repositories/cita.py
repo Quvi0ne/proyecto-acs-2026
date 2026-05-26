@@ -22,6 +22,18 @@ async def list_by_fecha(db: AsyncSession, fecha: date) -> list[Cita]:
     return list(result.scalars().all())
 
 
+async def list_all(db: AsyncSession) -> list[Cita]:
+    result = await db.execute(
+        select(Cita)
+        .options(
+            selectinload(Cita.paciente),
+            selectinload(Cita.medico).selectinload(Medico.usuario),
+        )
+        .order_by(Cita.fecha_hora.desc())
+    )
+    return list(result.scalars().all())
+
+
 async def get_by_id(db: AsyncSession, cita_id: str) -> Cita | None:
     result = await db.execute(
         select(Cita)
