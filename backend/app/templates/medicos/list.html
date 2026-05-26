@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}SECE — Médicos{% endblock %}
+{% block page_title %}Médicos{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item active">Médicos</li>
+  </ol>
+</nav>
+
+<div class="content-card">
+  <div class="content-card-header">
+    <span class="card-title">Médicos activos</span>
+    {% if user.rol.value == 'ADMIN' %}
+    <a href="/medicos/crear" class="btn btn-sece btn-sm">+ Nuevo médico</a>
+    {% endif %}
+  </div>
+
+  {% if medicos %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Especialidad</th>
+          <th>No. colegiado</th>
+          <th>Correo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in medicos %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="patient-avatar" style="width:32px;height:32px;font-size:.75rem">
+                {{ m.usuario.nombre.split()[0][0] }}{{ m.usuario.nombre.split()[-1][0] if m.usuario.nombre.split()|length > 1 else '' }}
+              </div>
+              <span>{{ m.usuario.nombre }}</span>
+            </div>
+          </td>
+          <td>{{ m.especialidad }}</td>
+          <td><code style="font-size:.8rem">{{ m.num_colegiado }}</code></td>
+          <td>{{ m.usuario.email }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="p-4 text-muted" style="font-size:.85rem">No hay médicos registrados.</div>
+  {% endif %}
+</div>
+{% endblock %}

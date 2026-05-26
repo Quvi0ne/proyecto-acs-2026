@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}SECE — Registrar médico{% endblock %}
+{% block page_title %}Registrar médico{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/medicos">Médicos</a></li>
+    <li class="breadcrumb-item active">Nuevo médico</li>
+  </ol>
+</nav>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<form method="post" action="/medicos/crear">
+  <div class="content-card mb-3">
+    <div class="content-card-header"><span class="card-title">Datos del médico</span></div>
+    <div class="p-4">
+      <div class="form-section-title">Información profesional</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nombre completo *</label>
+          <input type="text" name="nombre" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Especialidad *</label>
+          <input type="text" name="especialidad" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">No. de colegiado *</label>
+          <input type="text" name="num_colegiado" class="form-control" required>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card mb-4">
+    <div class="content-card-header"><span class="card-title">Acceso al sistema</span></div>
+    <div class="p-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Correo electrónico</label>
+          <input type="email" name="email" class="form-control" placeholder="Opcional — se genera automáticamente">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Contraseña inicial</label>
+          <input type="text" name="password" class="form-control" placeholder="Opcional — se genera automáticamente">
+        </div>
+        <div class="col-12">
+          <p class="text-muted mb-0" style="font-size:.8rem">Si no se especifica correo ni contraseña, se generan automáticamente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-sece">Registrar médico</button>
+    <a href="/medicos" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}
