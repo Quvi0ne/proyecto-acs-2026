@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sece_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/sece_test
+      JWT_SECRET: test-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Instalar dependencias
+        run: uv sync
+
+      - name: Ejecutar migraciones
+        run: uv run alembic upgrade head
+
+      - name: Crear usuario administrador
+        run: uv run python -m app.scripts.seed_admin
+
+      - name: Ejecutar pruebas
+        run: uv run pytest -q
