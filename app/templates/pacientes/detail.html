@@ -32,9 +32,12 @@
         {% if user.rol.value == 'MEDICO' %}
         <a href="/consultas/crear?paciente_id={{ paciente.id }}" class="btn btn-sece btn-sm">+ Nueva consulta</a>
         {% endif %}
+        {% if user.rol.value in ['RECEPCIONISTA', 'ADMIN'] %}
+        <a href="/pacientes/{{ paciente.id }}/editar" class="btn btn-outline-secondary btn-sm">Editar</a>
+        {% endif %}
         {% if user.rol.value == 'ADMIN' %}
         <form method="post" action="/pacientes/{{ paciente.id }}/eliminar" onsubmit="return confirm('¿Eliminar a {{ paciente.nombre_completo }}? Esta acción no se puede deshacer.')">
-          <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar paciente</button>
+          <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
         </form>
         {% endif %}
       </div>

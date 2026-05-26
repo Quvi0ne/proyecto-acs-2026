@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}SECE — Editar paciente{% endblock %}
+{% block page_title %}Editar paciente{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/pacientes">Pacientes</a></li>
+    <li class="breadcrumb-item"><a href="/pacientes/{{ paciente.id }}">{{ paciente.nombre_completo }}</a></li>
+    <li class="breadcrumb-item active">Editar</li>
+  </ol>
+</nav>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible mb-3 py-2 px-3" style="font-size:.85rem">
+  {{ error }}
+  <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<form method="post" action="/pacientes/{{ paciente.id }}/editar">
+  <div class="content-card mb-3">
+    <div class="content-card-header"><span class="card-title">Datos personales</span></div>
+    <div class="p-4">
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Código de expediente</label>
+          <input type="text" class="form-control" value="{{ paciente.codigo_expediente }}" disabled>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">DPI</label>
+          <input type="text" class="form-control" value="{{ paciente.dpi }}" disabled>
+        </div>
+      </div>
+      <div class="form-section-title">Identificación</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nombre completo *</label>
+          <input type="text" name="nombre_completo" class="form-control" value="{{ paciente.nombre_completo }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de nacimiento *</label>
+          <input type="date" name="fecha_nacimiento" class="form-control"
+                 value="{{ paciente.fecha_nacimiento.isoformat() }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sexo *</label>
+          <select name="sexo" class="form-select" required>
+            <option value="M" {% if paciente.sexo.value == 'M' %}selected{% endif %}>Masculino</option>
+            <option value="F" {% if paciente.sexo.value == 'F' %}selected{% endif %}>Femenino</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card mb-4">
+    <div class="content-card-header"><span class="card-title">Datos de contacto</span></div>
+    <div class="p-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" name="telefono" class="form-control" value="{{ paciente.telefono or '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Correo electrónico</label>
+          <input type="email" name="email" class="form-control" value="{{ paciente.email or '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Dirección</label>
+          <textarea name="direccion" class="form-control" rows="2">{{ paciente.direccion or '' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-sece">Guardar cambios</button>
+    <a href="/pacientes/{{ paciente.id }}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

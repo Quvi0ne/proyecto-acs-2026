@@ -86,6 +86,48 @@ async def crear_paciente_post(
     return RedirectResponse(f"/pacientes?ok=Paciente {nombre_completo} registrado", status_code=303)
 
 
+@router.get("/pacientes/{paciente_id}/editar")
+async def editar_paciente_get(
+    paciente_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_web_user),
+):
+    paciente = await repo.get_by_id(db, paciente_id)
+    if not paciente:
+        return RedirectResponse("/pacientes?error=Paciente no encontrado", status_code=302)
+    return templates.TemplateResponse(
+        request, "pacientes/edit.html", {"user": user, "paciente": paciente, "error": None}
+    )
+
+
+@router.post("/pacientes/{paciente_id}/editar")
+async def editar_paciente_post(
+    paciente_id: str,
+    request: Request,
+    nombre_completo: str = Form(...),
+    fecha_nacimiento: str = Form(...),
+    sexo: str = Form(...),
+    telefono: str = Form(""),
+    email: str = Form(""),
+    direccion: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_web_user),
+):
+    paciente = await repo.get_by_id(db, paciente_id)
+    if not paciente:
+        return RedirectResponse("/pacientes?error=Paciente no encontrado", status_code=302)
+    paciente.nombre_completo = nombre_completo
+    paciente.fecha_nacimiento = date.fromisoformat(fecha_nacimiento)
+    paciente.sexo = Sexo(sexo)
+    paciente.telefono = telefono or None
+    paciente.email = email or None
+    paciente.direccion = direccion or None
+    paciente.updated_by = user.id
+    await repo.save(db, paciente)
+    return RedirectResponse(f"/pacientes/{paciente_id}?ok=Datos actualizados correctamente", status_code=303)
+
+
 @router.post("/pacientes/{paciente_id}/eliminar")
 async def eliminar_paciente(
     paciente_id: str,
