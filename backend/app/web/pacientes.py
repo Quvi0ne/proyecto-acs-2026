@@ -34,17 +34,13 @@ async def list_pacientes(
     else:
         pacientes = await repo.list_all(db)
     return templates.TemplateResponse(
-        "pacientes/list.html",
-        {"request": request, "user": user, "pacientes": pacientes, "q": q},
+        request, "pacientes/list.html", {"user": user, "pacientes": pacientes, "q": q}
     )
 
 
 @router.get("/pacientes/crear")
 async def crear_paciente_get(request: Request, user=Depends(get_web_user)):
-    return templates.TemplateResponse(
-        "pacientes/create.html",
-        {"request": request, "user": user, "error": None},
-    )
+    return templates.TemplateResponse(request, "pacientes/create.html", {"user": user, "error": None})
 
 
 @router.post("/pacientes/crear")
@@ -62,8 +58,9 @@ async def crear_paciente_post(
 ):
     if await repo.get_by_dpi(db, dpi):
         return templates.TemplateResponse(
+            request,
             "pacientes/create.html",
-            {"request": request, "user": user, "error": "El DPI ya está registrado en el sistema"},
+            {"user": user, "error": "El DPI ya está registrado en el sistema"},
             status_code=409,
         )
     codigo = await _generate_codigo(db)
@@ -81,8 +78,9 @@ async def crear_paciente_post(
         await repo.create(db, paciente)
     except IntegrityError:
         return templates.TemplateResponse(
+            request,
             "pacientes/create.html",
-            {"request": request, "user": user, "error": "Error al registrar el paciente"},
+            {"user": user, "error": "Error al registrar el paciente"},
             status_code=409,
         )
     return RedirectResponse(f"/pacientes?ok=Paciente {nombre_completo} registrado", status_code=303)
@@ -100,6 +98,5 @@ async def detalle_paciente(
         return RedirectResponse("/pacientes?error=Paciente no encontrado", status_code=302)
     historial = await consulta_repo.list_historial_paciente(db, paciente_id)
     return templates.TemplateResponse(
-        "pacientes/detail.html",
-        {"request": request, "user": user, "paciente": paciente, "historial": historial},
+        request, "pacientes/detail.html", {"user": user, "paciente": paciente, "historial": historial}
     )

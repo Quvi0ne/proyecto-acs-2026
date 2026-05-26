@@ -26,8 +26,7 @@ async def list_citas(
     hoy = date.fromisoformat(fecha) if fecha else date.today()
     citas = await repo.list_by_fecha(db, hoy)
     return templates.TemplateResponse(
-        "citas/list.html",
-        {"request": request, "user": user, "citas": citas, "fecha": hoy},
+        request, "citas/list.html", {"user": user, "citas": citas, "fecha": hoy}
     )
 
 
@@ -41,15 +40,10 @@ async def crear_cita_get(
     pacientes = await paciente_repo.list_all(db)
     medicos = await medico_repo.list_active(db)
     return templates.TemplateResponse(
+        request,
         "citas/create.html",
-        {
-            "request": request,
-            "user": user,
-            "pacientes": pacientes,
-            "medicos": medicos,
-            "paciente_id_sel": paciente_id,
-            "error": None,
-        },
+        {"user": user, "pacientes": pacientes, "medicos": medicos,
+         "paciente_id_sel": paciente_id, "error": None},
     )
 
 
@@ -72,24 +66,15 @@ async def crear_cita_post(
         pacientes = await paciente_repo.list_all(db)
         medicos = await medico_repo.list_active(db)
         return templates.TemplateResponse(
+            request,
             "citas/create.html",
-            {
-                "request": request,
-                "user": user,
-                "pacientes": pacientes,
-                "medicos": medicos,
-                "paciente_id_sel": paciente_id,
-                "error": "El médico ya tiene una cita programada a esa hora",
-            },
+            {"user": user, "pacientes": pacientes, "medicos": medicos,
+             "paciente_id_sel": paciente_id,
+             "error": "El médico ya tiene una cita programada a esa hora"},
             status_code=409,
         )
 
-    cita = Cita(
-        paciente_id=paciente_id,
-        medico_id=medico_id,
-        fecha_hora=dt,
-        motivo=motivo or None,
-    )
+    cita = Cita(paciente_id=paciente_id, medico_id=medico_id, fecha_hora=dt, motivo=motivo or None)
     await repo.create(db, cita)
     return RedirectResponse(f"/citas?ok=Cita programada exitosamente&fecha={dt.date()}", status_code=303)
 
@@ -105,8 +90,7 @@ async def editar_cita_get(
     if not cita:
         return RedirectResponse("/citas?error=Cita no encontrada", status_code=302)
     return templates.TemplateResponse(
-        "citas/edit.html",
-        {"request": request, "user": user, "cita": cita, "error": None},
+        request, "citas/edit.html", {"user": user, "cita": cita, "error": None}
     )
 
 
@@ -124,7 +108,9 @@ async def editar_cita_post(
     if not cita:
         return RedirectResponse("/citas?error=Cita no encontrada", status_code=302)
     if cita.estado != EstadoCita.PROGRAMADA:
-        return RedirectResponse("/citas?error=Solo se pueden modificar citas en estado PROGRAMADA", status_code=302)
+        return RedirectResponse(
+            "/citas?error=Solo se pueden modificar citas en estado PROGRAMADA", status_code=302
+        )
 
     if accion == "cancelar":
         cita.estado = EstadoCita.CANCELADA
@@ -139,13 +125,9 @@ async def editar_cita_post(
             dt = datetime.fromisoformat(fecha_hora + ":00").replace(tzinfo=timezone.utc)
         if await repo.existe_conflicto(db, cita.medico_id, dt, exclude_id=cita_id):
             return templates.TemplateResponse(
+                request,
                 "citas/edit.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "cita": cita,
-                    "error": "El médico ya tiene una cita a esa hora",
-                },
+                {"user": user, "cita": cita, "error": "El médico ya tiene una cita a esa hora"},
                 status_code=409,
             )
         cita.fecha_hora = dt

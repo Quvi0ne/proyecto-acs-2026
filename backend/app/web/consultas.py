@@ -29,8 +29,7 @@ async def crear_consulta_get(
 ):
     cita = await cita_repo.get_by_id(db, cita_id) if cita_id else None
     return templates.TemplateResponse(
-        "consultas/create.html",
-        {"request": request, "user": user, "cita": cita, "cita_id": cita_id, "error": None},
+        request, "consultas/create.html", {"user": user, "cita": cita, "cita_id": cita_id, "error": None}
     )
 
 
@@ -76,8 +75,7 @@ async def detalle_consulta(
     if not consulta:
         return RedirectResponse("/pacientes?error=Consulta no encontrada", status_code=302)
     return templates.TemplateResponse(
-        "consultas/detail.html",
-        {"request": request, "user": user, "consulta": consulta},
+        request, "consultas/detail.html", {"user": user, "consulta": consulta}
     )
 
 
@@ -92,8 +90,7 @@ async def signos_get(
     if not consulta:
         return RedirectResponse("/pacientes?error=Consulta no encontrada", status_code=302)
     return templates.TemplateResponse(
-        "consultas/signos.html",
-        {"request": request, "user": user, "consulta": consulta, "error": None},
+        request, "consultas/signos.html", {"user": user, "consulta": consulta, "error": None}
     )
 
 
@@ -146,8 +143,7 @@ async def receta_get(
     if not consulta:
         return RedirectResponse("/pacientes?error=Consulta no encontrada", status_code=302)
     return templates.TemplateResponse(
-        "consultas/receta.html",
-        {"request": request, "user": user, "consulta": consulta, "error": None},
+        request, "consultas/receta.html", {"user": user, "consulta": consulta, "error": None}
     )
 
 
@@ -171,9 +167,9 @@ async def receta_post(
     nombres_validos = [n.strip() for n in nombres if n.strip()]
     if not nombres_validos:
         return templates.TemplateResponse(
+            request,
             "consultas/receta.html",
-            {"request": request, "user": user, "consulta": consulta,
-             "error": "Agrega al menos un medicamento"},
+            {"user": user, "consulta": consulta, "error": "Agrega al menos un medicamento"},
             status_code=422,
         )
 

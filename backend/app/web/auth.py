@@ -13,7 +13,7 @@ router = APIRouter(tags=["Web"])
 
 @router.get("/login")
 async def login_get(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "user": None, "error": None})
+    return templates.TemplateResponse(request, "login.html", {"user": None, "error": None})
 
 
 @router.post("/login")
@@ -26,8 +26,9 @@ async def login_post(
     user = await usuario_repo.get_by_email(db, email)
     if not user or not user.activo or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "user": None, "error": "Correo o contraseña incorrectos"},
+            {"user": None, "error": "Correo o contraseña incorrectos"},
             status_code=401,
         )
     token = create_access_token(sub=user.id, rol=user.rol.value)
@@ -48,4 +49,4 @@ async def dashboard(
     request: Request,
     user=Depends(get_web_user),
 ):
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "dashboard.html", {"user": user})
