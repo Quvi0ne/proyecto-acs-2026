@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -6,6 +6,8 @@ from app.core.deps import get_current_user, require_role
 from app.core.security import hash_password
 from app.models.enums import Rol
 from app.models.usuario import Usuario
+from app.repositories import cita as cita_repo
+from app.repositories import medico as medico_repo
 from app.repositories import usuario as repo
 from app.schemas.usuario import UsuarioCreate, UsuarioRead, UsuarioUpdateRol
 
@@ -73,3 +75,34 @@ async def toggle_activo(
 @router.get("/me", response_model=UsuarioRead)
 async def me(current: Usuario = Depends(get_current_user)):
     return current
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_usuario(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current: Usuario = Depends(admin_only),
+):
+    target = await repo.get_by_id(db, user_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    if target.id == current.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No puedes eliminar tu propia cuenta"
+        )
+    if target.rol == Rol.ADMIN and await repo.count_active_admins(db) <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="No puedes eliminar al único administrador"
+        )
+    if target.rol == Rol.MEDICO:
+        medico = await medico_repo.get_by_usuario_id(db, user_id)
+        if medico:
+            total_citas = await cita_repo.count_by_medico(db, medico.id)
+            if total_citas > 0:
+                detalle = (
+                    f"No se puede eliminar: el médico tiene {total_citas} cita(s) registrada(s)"
+                )
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detalle)
+            await medico_repo.delete(db, medico.id)
+    await repo.delete(db, user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

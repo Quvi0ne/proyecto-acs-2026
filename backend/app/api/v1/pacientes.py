@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -87,3 +87,22 @@ async def historial_consultas(
     if not await repo.get_by_id(db, paciente_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paciente no encontrado")
     return await consulta_repo.list_historial_paciente(db, paciente_id)
+
+
+@router.delete("/{paciente_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_paciente(
+    paciente_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(require_role(Rol.ADMIN)),
+):
+    paciente = await repo.get_by_id(db, paciente_id)
+    if not paciente:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paciente no encontrado")
+    total_citas = await repo.count_citas(db, paciente_id)
+    if total_citas > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"No se puede eliminar: el paciente tiene {total_citas} cita(s) registrada(s)",
+        )
+    await repo.delete(db, paciente_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
