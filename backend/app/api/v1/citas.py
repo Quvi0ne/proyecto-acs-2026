@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_role
 from app.models.cita import Cita
-from app.models.enums import Rol
+from app.models.enums import EstadoCita, Rol
 from app.models.usuario import Usuario
 from app.repositories import cita as repo
 from app.repositories import medico as medico_repo
 from app.repositories import paciente as paciente_repo
-from app.models.enums import EstadoCita
-from app.schemas.cita import CitaCreate, CitaRead, CitaUpdate
+from app.schemas.cita import CitaCreate, CitaListItem, CitaRead, CitaUpdate
 
 router = APIRouter(prefix="/citas", tags=["Citas"])
 
@@ -34,6 +35,24 @@ async def create_cita(
         )
     cita = Cita(**body.model_dump())
     return await repo.create(db, cita)
+
+
+@router.get("", response_model=list[CitaListItem])
+async def list_citas(
+    fecha: date | None = None,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    """Lista citas. Con ?fecha=AAAA-MM-DD filtra ese día; sin fecha devuelve todas."""
+    citas = await repo.list_by_fecha(db, fecha) if fecha else await repo.list_all(db)
+    return [
+        CitaListItem(
+            **CitaRead.model_validate(c).model_dump(),
+            paciente_nombre=c.paciente.nombre_completo,
+            medico_nombre=c.medico.usuario.nombre,
+        )
+        for c in citas
+    ]
 
 
 @router.get("/{cita_id}", response_model=CitaRead)
@@ -80,3 +99,21 @@ async def update_cita(
     if body.motivo is not None:
         cita.motivo = body.motivo
     return await repo.save(db, cita)
+
+
+@router.delete("/{cita_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_cita(
+    cita_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: Usuario = Depends(receptionist_or_admin),
+):
+    cita = await repo.get_by_id(db, cita_id)
+    if not cita:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cita no encontrada")
+    if cita.estado == EstadoCita.COMPLETADA:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No se puede eliminar una cita completada (tiene consulta asociada)",
+        )
+    await repo.delete(db, cita_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

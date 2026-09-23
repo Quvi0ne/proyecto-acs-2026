@@ -29,3 +29,8 @@ class CitaRead(BaseModel):
     motivo: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class CitaListItem(CitaRead):
+    paciente_nombre: str
+    medico_nombre: str
